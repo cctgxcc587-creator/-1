@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>定制工厂财务软件</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="lockScreen" class="lock-screen">
+      <form id="lockForm" class="lock-box">
+        <div class="brand-mark">财</div>
+        <h1>定制工厂财务</h1>
+        <p>请输入密码进入</p>
+        <input id="lockPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="密码" />
+        <button class="primary-button" type="submit">进入</button>
+        <span id="lockError" class="lock-error"></span>
+      </form>
+    </div>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主导航">
+        <div class="brand">
+          <div class="brand-mark">财</div>
+          <div>
+            <h1>定制工厂财务</h1>
+            <p>板材 · 五金 · 工资 · 售后</p>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="功能模块">
+          <button class="nav-tab active" data-view="dashboard" title="总览"><span class="icon">总</span><span>总览</span></button>
+          <button class="nav-tab" data-view="orders" title="订单录入"><span class="icon">单</span><span>订单</span></button>
+          <button class="nav-tab" data-view="materials" title="材料统计"><span class="icon">板</span><span>材料</span></button>
+          <button class="nav-tab" data-view="payroll" title="工人工资"><span class="icon">工</span><span>工资</span></button>
+          <button class="nav-tab" data-view="expenses" title="售后开支"><span class="icon">支</span><span>开支</span></button>
+          <button class="nav-tab" data-view="reports" title="利润报表"><span class="icon">表</span><span>报表</span></button>
+          <button class="nav-tab" data-view="recycle" title="回收站"><span class="icon">回</span><span>回收站</span></button>
+          <button class="nav-tab" data-view="settings" title="设置"><span class="icon">设</span><span>设置</span></button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button id="exportCsv" class="ghost-button" title="导出全部数据"><span class="icon">出</span><span>导出</span></button>
+          <button id="resetDemo" class="ghost-button danger" title="恢复演示数据"><span class="icon">重</span><span>重置</span></button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">本地保存，不上传数据</p>
+            <h2 id="viewTitle">总览</h2>
+          </div>
+          <div class="topbar-actions">
+            <label class="period-picker">
+              <span>月份</span>
+              <input id="periodInput" type="month" value="2026-04" />
+            </label>
+            <div class="status-pill"><span></span>已自动保存</div>
+          </div>
+        </header>
+
+        <section id="dashboard" class="view active">
+          <div class="kpi-grid">
+            <article class="metric">
+              <p>订单收入</p>
+              <strong id="kpiRevenue">¥0</strong>
+              <span id="kpiOrderCount">0 个订单</span>
+            </article>
+            <article class="metric">
+              <p>板材成本</p>
+              <strong id="kpiBoardCost">¥0</strong>
+              <span id="kpiBoardSheets">0 张板</span>
+            </article>
+            <article class="metric">
+              <p>工资和开支</p>
+              <strong id="kpiSpend">¥0</strong>
+              <span id="kpiAfterSales">售后 ¥0</span>
+            </article>
+            <article class="metric accent">
+              <p>预计利润</p>
+              <strong id="kpiProfit">¥0</strong>
+              <span id="kpiProfitRate">毛利率 0%</span>
+            </article>
+          </div>
+
+          <div class="content-grid two-col">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>客户利润排行</h3>
+                <span id="customerRankNote">按当前月份</span>
+              </div>
+              <div id="customerRank" class="rank-list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>板材用量</h3>
+                <span id="boardMixNote">按品牌和厚度</span>
+              </div>
+              <div id="boardMix" class="compact-list"></div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-head with-controls">
+              <div>
+                <h3>订单明细</h3>
+                <span id="dashboardOrderSummary">当前月份</span>
+              </div>
+              <button class="secondary-button" data-jump-view="orders"><span class="icon">+</span><span>录入新订单</span></button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>状态</th>
+                    <th>客户 / 项目</th>
+                    <th>设计师/电话</th>
+                    <th class="number">投影面积</th>
+                    <th class="number">收入</th>
+                    <th class="number">成本</th>
+                    <th class="number">利润</th>
+                    <th class="number">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardOrders"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>每月订单和板材数</h3>
+              <span>统计 18 / 25 / 09 板子张数</span>
+            </div>
+            <div class="table-wrap small-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>月份</th>
+                    <th class="number">订单数</th>
+                    <th class="number">18板</th>
+                    <th class="number">25板</th>
+                    <th class="number">09板</th>
+                  </tr>
+                </thead>
+                <tbody id="monthlyBoardTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="orders" class="view">
+          <div class="content-grid order-grid">
+            <section class="panel form-panel">
+              <div class="panel-head">
+                <h3>新增订单</h3>
+                <span>客户、设计师、板材、五金一次录入</span>
+              </div>
+              <form id="orderForm" class="data-form">
+                <label><span>日期</span><input name="date" type="date" required /></label>
+                <label>
+                  <span>订单状态</span>
+                  <select name="status">
+                    <option>正在生产</option>
+                    <option>画图</option>
+                    <option>下单</option>
+                    <option>买板</option>
+                    <option>待安装</option>
+                    <option>安装中</option>
+                    <option>已完成</option>
+                    <option>售后中</option>
+                    <option>已暂停</option>
+                  </select>
+                </label>
+                <label><span>客户/一家</span><input name="customer" type="text" placeholder="例如 阿勒泰边防" required /></label>
+                <label><span>客户电话</span><input name="customerPhone" type="tel" placeholder="手机号/电话" /></label>
+                <label><span>项目/房号</span><input name="project" type="text" placeholder="例如 207到212" required /></label>
+                <label><span>设计师</span><input name="designer" type="text" placeholder="例如 王设计" /></label>
+                <label><span>设计师电话</span><input name="designerPhone" type="tel" placeholder="手机号" /></label>
+                <label><span>设计费</span><input name="designFee" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>安装工</span><input name="installer" type="text" placeholder="例如 李安装" /></label>
+                <label><span>安装工电话</span><input name="installerPhone" type="tel" placeholder="手机号" /></label>
+                <label><span>安装费</span><input name="installFee" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>销售</span><input name="salesperson" type="text" placeholder="例如 张销售" /></label>
+                <label><span>销售电话</span><input name="salesPhone" type="tel" placeholder="手机号" /></label>
+                <label><span>销售费</span><input name="salesFee" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>投影面积 m²</span><input name="projectionArea" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>客户收款/报价</span><input name="saleAmount" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>板材品牌</span><input name="boardBrand" type="text" value="达芬" /></label>
+                <label>
+                  <span>板材等级</span>
+                  <select name="boardGrade">
+                    <option value="">未选</option>
+                    <option>ENF级</option>
+                    <option>E0级</option>
+                  </select>
+                </label>
+                <label><span>板材名称/颜色1</span><input name="boardName" type="text" value="达芬橡木" /></label>
+                <label><span>厚度1</span><input name="thickness" type="text" value="18" /></label>
+                <label><span>张数1</span><input name="sheets" type="number" min="0" step="0.01" placeholder="0" /></label>
+                <label><span>板材单价1</span><input name="boardUnitPrice" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>板材名称/颜色2</span><input name="boardName2" type="text" placeholder="例如 炊烟" /></label>
+                <label><span>厚度2</span><input name="thickness2" type="text" placeholder="例如 09" /></label>
+                <label><span>张数2</span><input name="sheets2" type="number" min="0" step="0.01" placeholder="0" /></label>
+                <label><span>板材单价2</span><input name="boardUnitPrice2" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <label><span>封边条卷数</span><input name="edgeRolls" type="number" min="0" step="0.01" placeholder="0" /></label>
+                <label><span>封边条单价</span><input name="edgeUnitPrice" type="number" min="0" step="0.01" value="35" /></label>
+                <label><span>五金品牌</span><input name="hardwareBrand" type="text" placeholder="例如 悍高 / 东泰" /></label>
+                <label><span>五金名称</span><input name="hardwareName" type="text" placeholder="例如 铰链拉手" /></label>
+                <label><span>五金金额</span><input name="hardwareAmount" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+                <button id="orderSubmitButton" class="primary-button" type="submit"><span class="icon">+</span><span>保存订单</span></button>
+                <button id="cancelOrderEdit" class="secondary-button hidden" type="button"><span class="icon">×</span><span>取消编辑</span></button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>文字 / 照片智能建单</h3>
+                <span>不限 WPS/Excel，普通文字和照片文字都可以</span>
+              </div>
+              <textarea id="pasteImport" class="paste-box" placeholder="可以粘贴任意订单文字，不限 WPS/Excel。例如：客户张三 电话13800000000 项目201 金额8000 18板10张 25板2张 设计师王工。"></textarea>
+              <div class="inline-actions">
+                <button id="importText" class="secondary-button"><span class="icon">入</span><span>导入文字</span></button>
+                <button id="loadPhotoDemo" class="secondary-button"><span class="icon">图</span><span>载入截图示例</span></button>
+              </div>
+              <label class="photo-import">
+                <span>拍照识别建单（识别照片里的字）</span>
+                <input id="photoInput" type="file" accept="image/*" capture="environment" />
+              </label>
+              <img id="photoPreview" class="photo-preview hidden" alt="采购单照片预览" />
+              <div id="importResult" class="note-box">可以粘贴任意订单文字，或拍照识别图片里的字来建单。</div>
+            </section>
+          </div>
+
+          <section class="panel table-panel">
+            <div class="panel-head with-controls">
+              <div>
+                <h3>订单列表</h3>
+                <span id="orderListSummary">0 个订单</span>
+              </div>
+              <div class="list-tools">
+                <input id="orderSearch" class="search-input" type="search" placeholder="搜索客户、电话、项目、设计师" />
+                <button id="openRecycleBin" class="recycle-entry" type="button" title="进入回收站">
+                  <span class="icon">删</span>
+                  <span>回收站</span>
+                  <strong id="recycleCount">0</strong>
+                </button>
+              </div>
+            </div>
+            <div id="orderCards" class="order-cards"></div>
+          </section>
+        </section>
+
+        <section id="materials" class="view">
+          <div class="content-grid two-col">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>每家板材统计</h3>
+                <span>品牌、颜色、厚度、张数、金额</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                    <th>日期</th>
+                    <th>状态</th>
+                    <th>客户 / 项目</th>
+                      <th>品牌</th>
+                      <th>等级</th>
+                      <th>名称/颜色</th>
+                      <th>厚度</th>
+                      <th class="number">张数</th>
+                      <th class="number">金额</th>
+                    </tr>
+                  </thead>
+                  <tbody id="materialCustomerTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>板材汇总</h3>
+                <span id="materialSummary">全部订单</span>
+              </div>
+              <div class="table-wrap small-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>品牌/名称</th>
+                      <th>等级</th>
+                      <th>厚度</th>
+                      <th class="number">张数</th>
+                      <th class="number">金额</th>
+                    </tr>
+                  </thead>
+                  <tbody id="materialSummaryTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>五金和人员信息</h3>
+              <span>按订单统计五金、设计师、安装工、销售</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>状态</th>
+                    <th>客户 / 项目</th>
+                    <th>设计师/电话</th>
+                    <th>安装工/电话</th>
+                    <th>销售/电话</th>
+                    <th>五金品牌</th>
+                    <th>五金名称</th>
+                    <th class="number">五金金额</th>
+                    <th class="number">投影面积</th>
+                  </tr>
+                </thead>
+                <tbody id="hardwareTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="payroll" class="view">
+          <div class="content-grid ledger-grid">
+            <section class="panel form-panel">
+              <div class="panel-head">
+                <h3>工人工资</h3>
+                <span>记录加工厂每个工人多少钱</span>
+              </div>
+              <form id="payrollForm" class="data-form">
+                <label><span>日期</span><input name="date" type="date" required /></label>
+                <label><span>工人姓名</span><input name="worker" type="text" placeholder="例如 张师傅" required /></label>
+                <label><span>项目</span><select name="orderId" id="payrollOrderSelect"></select></label>
+                <label><span>工种</span><input name="job" type="text" placeholder="例如 封边 / 打包 / 安装" /></label>
+                <label><span>数量</span><input name="quantity" type="number" min="0" step="0.01" value="1" /></label>
+                <label><span>工资金额</span><input name="amount" type="number" min="0" step="0.01" required /></label>
+                <button class="primary-button" type="submit"><span class="icon">+</span><span>保存工资</span></button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>开支拍照识别</h3>
+                <span>货拉拉、补板、售后、维修票据都可以</span>
+              </div>
+              <textarea id="expenseImportText" class="paste-box" placeholder="可以粘贴开支文字，例如：货拉拉 阿勒泰边防 200元；补板2张18板 金额300；设备维修500。"></textarea>
+              <div class="inline-actions">
+                <button id="importExpenseText" class="secondary-button" type="button"><span class="icon">入</span><span>导入开支</span></button>
+              </div>
+              <label class="photo-import">
+                <span>拍照识别开支</span>
+                <input id="expensePhotoInput" type="file" accept="image/*" capture="environment" />
+              </label>
+              <img id="expensePhotoPreview" class="photo-preview hidden" alt="开支照片预览" />
+              <div id="expenseImportResult" class="note-box">拍照或粘贴文字后，我会自动识别类型、金额、数量，并尽量关联订单。</div>
+            </section>
+
+            <section class="panel table-panel">
+              <div class="panel-head">
+                <h3>工资明细</h3>
+                <span id="payrollSummary">0 笔</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>日期</th>
+                      <th>工人</th>
+                      <th>项目</th>
+                      <th>工种</th>
+                      <th class="number">金额</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="payrollTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="expenses" class="view">
+          <div class="content-grid ledger-grid">
+            <section class="panel form-panel">
+              <div class="panel-head">
+                <h3>售后和其他开支</h3>
+                <span>货拉拉、补板、维修、加工厂其他开支</span>
+              </div>
+              <form id="expenseForm" class="data-form">
+                <label><span>日期</span><input name="date" type="date" required /></label>
+                <label>
+                  <span>类型</span>
+                  <select name="type">
+                    <option>货拉拉</option>
+                    <option>补板</option>
+                    <option>售后人工</option>
+                    <option>五金补件</option>
+                    <option>加工厂其他开支</option>
+                    <option>房租水电</option>
+                    <option>设备维修</option>
+                  </select>
+                </label>
+                <label><span>关联项目</span><select name="orderId" id="expenseOrderSelect"></select></label>
+                <label><span>说明</span><input name="note" type="text" placeholder="例如 货拉拉到客户家 / 补2张18板" required /></label>
+                <label><span>数量</span><input name="quantity" type="number" min="0" step="0.01" value="1" /></label>
+                <label><span>金额</span><input name="amount" type="number" min="0" step="0.01" required /></label>
+                <button class="primary-button" type="submit"><span class="icon">+</span><span>保存开支</span></button>
+              </form>
+            </section>
+
+            <section class="panel table-panel">
+              <div class="panel-head">
+                <h3>开支明细</h3>
+                <span id="expenseSummary">0 笔</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>日期</th>
+                      <th>类型</th>
+                      <th>项目</th>
+                      <th>说明</th>
+                      <th class="number">数量</th>
+                      <th class="number">金额</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="expenseTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="reports" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>每家利润表</h3>
+              <span id="profitReportSummary">当前月份</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>状态</th>
+                    <th>客户 / 项目</th>
+                    <th>设计师/电话</th>
+                    <th>安装工/电话</th>
+                    <th>销售/电话</th>
+                    <th class="number">投影面积</th>
+                    <th class="number">封边条</th>
+                    <th class="number">订单收入</th>
+                    <th class="number">板材</th>
+                    <th class="number">五金</th>
+                    <th class="number">设计/安装/销售</th>
+                    <th class="number">工资</th>
+                    <th class="number">售后/其他</th>
+                    <th class="number">利润</th>
+                  </tr>
+                </thead>
+                <tbody id="profitTable"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="content-grid two-col lower-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>工人工资汇总</h3>
+                <span>按姓名</span>
+              </div>
+              <div id="workerSummaryList" class="compact-list"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h3>开支类型汇总</h3>
+                <span>货拉拉、补板等</span>
+              </div>
+              <div id="expenseTypeList" class="compact-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="recycle" class="view">
+          <section id="deletedOrdersPanel" class="panel table-panel">
+            <div class="panel-head with-controls">
+              <div>
+                <h3>回收站</h3>
+                <span id="deletedOrderSummary">0 个已删除订单</span>
+              </div>
+              <button id="closeRecycleBin" class="secondary-button" type="button"><span class="icon">返</span><span>返回订单列表</span></button>
+            </div>
+            <div id="deletedOrderCards" class="order-cards"></div>
+          </section>
+        </section>
+
+        <section id="settings" class="view">
+          <section class="panel form-panel">
+            <div class="panel-head">
+              <div>
+                <h3>修改进入密码</h3>
+                <span>需要手机号验证</span>
+              </div>
+            </div>
+            <form id="passwordForm" class="data-form">
+              <label><span>验证手机号</span><input name="phone" type="tel" placeholder="请输入绑定手机号" required /></label>
+              <label><span>新密码</span><input name="password" type="password" placeholder="输入新密码" required /></label>
+              <label><span>确认新密码</span><input name="confirmPassword" type="password" placeholder="再次输入新密码" required /></label>
+              <button class="primary-button" type="submit"><span class="icon">存</span><span>保存新密码</span></button>
+            </form>
+            <div id="passwordResult" class="note-box"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <aside id="aiAssistant" class="ai-assistant collapsed" aria-label="AI语音助手">
+      <button id="assistantToggle" class="assistant-toggle" type="button" title="打开AI助手">
+        <span>AI</span>
+      </button>
+      <div class="assistant-panel">
+        <div class="assistant-head">
+          <div>
+            <h3>AI助手</h3>
+            <p>可以打字，也可以说话</p>
+          </div>
+          <button id="assistantClose" class="icon-button" type="button" title="收起助手">×</button>
+        </div>
+        <div id="assistantMessages" class="assistant-messages"></div>
+        <div class="assistant-actions">
+          <button id="assistantVoice" class="secondary-button" type="button"><span class="icon">麦</span><span>说话</span></button>
+          <button id="assistantSpeakLast" class="secondary-button" type="button"><span class="icon">读</span><span>重读</span></button>
+        </div>
+        <label class="assistant-voice-picker">
+          <span>语音</span>
+          <select id="assistantVoiceSelect"></select>
+        </label>
+        <form id="assistantForm" class="assistant-form">
+          <input id="assistantInput" type="text" placeholder="问：本月多少单，18板多少张" />
+          <button class="primary-button" type="submit">发送</button>
+        </form>
+      </div>
+    </aside>
+
+    <div id="confirmDialog" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="confirm-box">
+        <h3 id="confirmTitle">确认操作</h3>
+        <p id="confirmMessage">确定继续吗？</p>
+        <div class="confirm-actions">
+          <button id="confirmCancel" class="secondary-button" type="button">取消</button>
+          <button id="confirmOk" class="danger-button" type="button">确定删除</button>
+        </div>
+      </div>
+    </div>
+
+    <template id="emptyRow">
+      <tr>
+        <td colspan="14" class="empty-cell">暂无数据</td>
+      </tr>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
